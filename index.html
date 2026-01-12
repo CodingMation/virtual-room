@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MLH – The Virtual Room</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #000;
+    }
+
+    .info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<div class="info">
+  🎮 Move cube with Arrow Keys
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<script>
+  // ===============================
+  // Scene
+  // ===============================
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x202020);
+
+  // ===============================
+  // Camera
+  // ===============================
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  );
+  camera.position.set(0, 5, 8);
+  camera.lookAt(0, 0, 0);
+
+  // ===============================
+  // Renderer
+  // ===============================
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  // ===============================
+  // Lights
+  // ===============================
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(5, 10, 5);
+  dirLight.castShadow = true;
+  scene.add(dirLight);
+
+  // ===============================
+  // Floor (Platform)
+  // ===============================
+  const floorGeometry = new THREE.PlaneGeometry(12, 12);
+  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = 0;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // ===============================
+  // Cube (Player)
+  // ===============================
+  const cubeSize = 1;
+  const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+  const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff88 });
+  const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+  cube.position.set(0, cubeSize / 2, 0);
+  cube.castShadow = true;
+  scene.add(cube);
+
+  // ===============================
+  // Movement Settings
+  // ===============================
+  const speed = 0.2;
+  const roomLimit = 5;
+
+  document.addEventListener("keydown", (e) => {
+    switch (e.key) {
+      case "ArrowUp":
+        cube.position.z -= speed;
+        break;
+      case "ArrowDown":
+        cube.position.z += speed;
+        break;
+      case "ArrowLeft":
+        cube.position.x -= speed;
+        break;
+      case "ArrowRight":
+        cube.position.x += speed;
+        break;
+    }
+
+    // Keep cube inside room boundaries
+    cube.position.x = Math.max(-roomLimit, Math.min(roomLimit, cube.position.x));
+    cube.position.z = Math.max(-roomLimit, Math.min(roomLimit, cube.position.z));
+  });
+
+  // ===============================
+  // Animation Loop
+  // ===============================
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  // ===============================
+  // Resize Handling
+  // ===============================
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+
+</body>
+</html>
